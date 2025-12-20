@@ -126,6 +126,24 @@ To use arbitrary stock or ETF tickers, host a small service that matches Coinbas
 
 Configure `data_api_base_url` to point to your service and set `ticker` to the symbol you want to display.
 
+#### Finnhub PHP proxy example
+
+This repo includes `finnhub_candles.php`, a small proxy that translates Finnhub candles into the Coinbase
+`/products/{ticker}/candles` format. Deploy it on your hosting and point `data_api_base_url` to the host:
+
+```
+https://your-host.example.com
+```
+
+Example request:
+
+```
+https://your-host.example.com/products/AAPL/candles?granularity=900&start=2024-01-01T00:00&end=2024-01-02T00:00&token=YOUR_FINNHUB_KEY
+```
+
+The script accepts the Finnhub API token via `token=...`, the `X-Finnhub-Token` header, or the `FINNHUB_TOKEN`
+environment variable.
+
 ### Autostart
 
 To make it run on startup you can choose from 2 options:
