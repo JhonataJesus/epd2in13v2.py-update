@@ -20,7 +20,6 @@ if ($ticker === '') {
     exit;
 }
 
-$granularity = isset($_GET['granularity']) ? (int)$_GET['granularity'] : 900;
 $start = $_GET['start'] ?? null;
 $end = $_GET['end'] ?? null;
 
@@ -41,79 +40,56 @@ function parse_time_param($value): ?int
 
 $from = parse_time_param($start);
 $to = parse_time_param($end);
-
-if ($from === null || $to === null) {
+if (($start !== null || $end !== null) && ($from === null || $to === null)) {
     http_response_code(400);
     echo json_encode(['error' => 'Missing or invalid start/end time.']);
     exit;
 }
 
-$resolution_map = [
-    60 => '1',
-    300 => '5',
-    900 => '15',
-    1800 => '30',
-    3600 => '60',
-    86400 => 'D',
+$query_string = $_GET['query'] ?? '';
+$query_string = $query_string !== '' ? $query_string : 'tt:' . strtolower($ticker);
+$limit = isset($_GET['n']) ? (int)$_GET['n'] : 200;
+$limit = max(1, min($limit, 200));
+$last = $_GET['last'] ?? null;
+
+$query = [
+    'q' => $query_string,
+    'n' => $limit,
 ];
-$resolution = $resolution_map[$granularity] ?? '15';
-
-$token = $_GET['token'] ?? '';
-if ($token === '' && isset($_SERVER['HTTP_X_FINNHUB_TOKEN'])) {
-    $token = $_SERVER['HTTP_X_FINNHUB_TOKEN'];
-}
-if ($token === '' && getenv('FINNHUB_TOKEN')) {
-    $token = getenv('FINNHUB_TOKEN');
-}
-if ($token === '') {
-    http_response_code(401);
-    echo json_encode(['error' => 'Missing Finnhub token.']);
-    exit;
+if ($last !== null && $last !== '') {
+    $query['last'] = $last;
 }
 
-$query = http_build_query([
-    'symbol' => $ticker,
-    'resolution' => $resolution,
-    'from' => $from,
-    'to' => $to,
-    'token' => $token,
-]);
-
-$url = 'https://finnhub.io/api/v1/stock/candle?' . $query;
+$url = 'https://api.tickertick.com/feed?' . http_build_query($query);
 $response = @file_get_contents($url);
 if ($response === false) {
     http_response_code(502);
-    echo json_encode(['error' => 'Failed to fetch data from Finnhub.']);
+    echo json_encode(['error' => 'Failed to fetch data from TickerTick.']);
     exit;
 }
 
 $payload = json_decode($response, true);
-if (!is_array($payload) || ($payload['s'] ?? '') !== 'ok') {
-    echo json_encode([]);
+if (!is_array($payload)) {
+    echo json_encode(['stories' => []]);
     exit;
 }
 
-$times = $payload['t'] ?? [];
-$lows = $payload['l'] ?? [];
-$highs = $payload['h'] ?? [];
-$opens = $payload['o'] ?? [];
-$closes = $payload['c'] ?? [];
-$volumes = $payload['v'] ?? [];
-
-$candles = [];
-$count = count($times);
-for ($i = 0; $i < $count; $i++) {
-    if (!isset($lows[$i], $highs[$i], $opens[$i], $closes[$i], $volumes[$i])) {
-        continue;
-    }
-    $candles[] = [
-        (int)$times[$i],
-        (float)$lows[$i],
-        (float)$highs[$i],
-        (float)$opens[$i],
-        (float)$closes[$i],
-        (float)$volumes[$i],
-    ];
+$stories = $payload['stories'] ?? [];
+if (!is_array($stories)) {
+    $stories = [];
 }
 
-echo json_encode(array_reverse($candles));
+if ($from !== null && $to !== null) {
+    $from_ms = $from * 1000;
+    $to_ms = $to * 1000;
+    $stories = array_values(array_filter($stories, static function ($story) use ($from_ms, $to_ms) {
+        if (!is_array($story) || !isset($story['time'])) {
+            return false;
+        }
+        $time = (int)$story['time'];
+        return $time >= $from_ms && $time <= $to_ms;
+    }));
+}
+
+$payload['stories'] = $stories;
+echo json_encode($payload);
