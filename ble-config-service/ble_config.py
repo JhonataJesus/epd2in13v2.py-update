@@ -308,7 +308,7 @@ class BleConfigServer:
             if not use_adapter.powered:
                 use_adapter.powered = True
         except Exception as exc:
-            raise RuntimeError(f"Failed to power Bluetooth adapter: {exc}") from exc
+            logging.warning("Failed to power Bluetooth adapter: %s", exc)
         self.peripheral = peripheral.Peripheral(
             adapter_address=adapter_address,
             local_name="ZeroStock Config",
