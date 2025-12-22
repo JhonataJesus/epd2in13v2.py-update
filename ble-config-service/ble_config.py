@@ -303,6 +303,12 @@ class BleConfigServer:
         if not adapters:
             raise RuntimeError("No Bluetooth adapters found")
         adapter_address = self._resolve_adapter_address(adapters[0])
+        use_adapter = adapter.Adapter(adapter_address)
+        try:
+            if not use_adapter.powered:
+                use_adapter.powered = True
+        except Exception as exc:
+            logging.warning("Failed to power Bluetooth adapter: %s", exc)
         self.peripheral = peripheral.Peripheral(
             adapter_address=adapter_address,
             local_name="ZeroStock Config",
