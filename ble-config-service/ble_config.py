@@ -129,6 +129,10 @@ def _load_config_values(path: str) -> Dict[str, Dict[str, object]]:
 
 
 def _write_config(path: str, updates: Dict[str, Dict[str, object]]) -> None:
+    existing_stat: Optional[os.stat_result] = None
+    if os.path.exists(path):
+        existing_stat = os.stat(path)
+
     lines = []
     if os.path.exists(path):
         lines = _read_lines(path)
@@ -161,6 +165,17 @@ def _write_config(path: str, updates: Dict[str, Dict[str, object]]) -> None:
     if os.path.exists(path):
         shutil.copy2(path, f"{path}.bak")
     os.replace(temp_handle.name, path)
+    if existing_stat is None:
+        try:
+            existing_stat = os.stat(os.path.dirname(path))
+        except OSError:
+            existing_stat = None
+    if existing_stat is not None:
+        try:
+            os.chown(path, existing_stat.st_uid, existing_stat.st_gid)
+            os.chmod(path, existing_stat.st_mode)
+        except OSError:
+            pass
 
 
 def _validate_updates(payload: Dict[str, object]) -> Dict[str, Dict[str, object]]:
