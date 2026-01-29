@@ -24,13 +24,15 @@ class Epd2in13v4(Observer):
         self.screen_image = Image.new('1', (SCREEN_WIDTH, SCREEN_HEIGHT), 255)
         self.screen_draw = ImageDraw.Draw(self.screen_image)
         self.mode = mode
+        self.epd.display(frame)
+       
 
     @staticmethod
     def _init_display():
         epd = epd2in13_V4.EPD()
-        epd.init(epd.FULL_UPDATE)
-        epd.Clear(0xFF)
-        epd.init(epd.PART_UPDATE)
+        epd.init()
+       
+       
         return epd
 
     def form_image(self, prices, screen_draw):
