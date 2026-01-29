@@ -18,5 +18,6 @@ class Observable:
             observer.update(data)
 
     def close(self):
+        self.epd.sleep()
         for observer in self._observers:
             observer.close()
