@@ -27,7 +27,7 @@ class Epd2in13v4(Observer):
 
     @staticmethod
     def _init_display():
-        epd = epd2in13_V2.EPD()
+        epd = epd2in13_V4.EPD()
         epd.init(epd.FULL_UPDATE)
         epd.Clear(0xFF)
         epd.init(epd.PART_UPDATE)
