@@ -160,4 +160,4 @@ To make it run on startup you can choose from 2 options:
 ### Support the project
 If you would like to support this project and and keep me caffeinated, you can do it here:
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/drmod)
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/JhonataJesus)
