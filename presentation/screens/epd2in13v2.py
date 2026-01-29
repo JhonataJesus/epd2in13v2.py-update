@@ -2,7 +2,7 @@ import os
 
 from PIL import Image, ImageDraw, ImageFont
 try:
-    from waveshare_epd import epd2in13_V2
+    from waveshare_epd import epd2in13_V4
 except ImportError:
     pass
 from data.plot import Plot
@@ -16,7 +16,7 @@ FONT_SMALL = ImageFont.truetype(
 FONT_LARGE = ImageFont.truetype(
     os.path.join(os.path.dirname(__file__), os.pardir, 'PixelSplitter-Bold.ttf'), 26)
 
-class Epd2in13v2(Observer):
+class Epd2in13v4(Observer):
 
     def __init__(self, observable, mode):
         super().__init__(observable=observable)
@@ -57,4 +57,4 @@ class Epd2in13v2(Observer):
         self.epd.displayPartial(self.epd.getbuffer(screen_image_rotated))
 
     def close(self):
-        epd2in13_V2.epdconfig.module_exit()
+        epd2in13_V4.epdconfig.module_exit()
