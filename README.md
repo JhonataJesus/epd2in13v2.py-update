@@ -1,4 +1,4 @@
-# Zero BTC Screen
+# Zero BTC Screen V4 update
 
 Bitcoin (or any other currency) stock price for your RPi Zero
 
@@ -16,7 +16,7 @@ Bitcoin (or any other currency) stock price for your RPi Zero
 ### Supported displays
 
 * Waveshare eInk types:
-  * epd2in13v2
+  * epd2in13v4
   * epd2in13v3
   * epd2in13bv3
   * epd2in7
@@ -43,17 +43,14 @@ Bitcoin (or any other currency) stock price for your RPi Zero
     git clone https://github.com/waveshare/e-Paper.git ~/e-Paper
     pip3 install ~/e-Paper/RaspberryPi_JetsonNano/python/
     ```
-    2. If you have an Inky wHAT display
-    ```
-    pip3 install inky[rpi]
-    ```
+
 4. Download Zero BTC Screen
     ```
-    git clone https://github.com/dr-mod/zero-btc-screen.git ~/zero-btc-screen
+    git clone https://github.com/dr-mod/epd2in13v2.py-update.git ~/epd2in13v2.py-update
     ```
 5. Run it
     ```
-    python3 ~/zero-btc-screen/main.py
+    python3 ~/epd2in13v2.py-update/main.py
     ```
 
 
@@ -67,7 +64,7 @@ and "picture" screens are select:
 ```cfg
 [base]
 console_logs             : false
-#logs_file               : /tmp/zero-btc-screen.log
+#logs_file               : /tmp/epd2in13v2.py-update.log
 dummy_data               : false
 refresh_interval_minutes : 15
 # Price pair from Coinbase e.g. BTC-EUR or ADA-GBP
@@ -75,7 +72,7 @@ currency                 : BTC-USD
 
 # Enabled screens or devices
 screens : [
-    epd2in13v2
+    epd2in13v4
 #    epd2in13v3
 #    epd2in13bv3
 #    epd2in7
@@ -86,7 +83,7 @@ screens : [
 
 # Configuration per screen
 # This doesn't make any effect if screens are not enabled above
-[epd2in13v2]
+[epd2in13v4]
 mode : candle
 
 [epd2in13v3]
@@ -131,12 +128,12 @@ To make it run on startup you can choose from 2 options:
        environment
        ```
         [Unit]
-        Description=zero-btc-screen
+        Description=epd2in13v2.py-update
         After=network.target
  
         [Service]
         ExecStart=/usr/bin/python3 -u main.py
-        WorkingDirectory=/home/pi/zero-btc-screen
+        WorkingDirectory=/home/pi/epd2in13v2.py-update
         StandardOutput=inherit
         StandardError=inherit
         Restart=always
