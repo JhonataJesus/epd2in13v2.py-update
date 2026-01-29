@@ -1,3 +1,18 @@
+
+import socket
+
+def wait_for_internet():
+    while True:
+        try:
+            socket.gethostbyname("api.exchange.coinbase.com")
+            return
+        except:
+            logger.info("Waiting for internet...")
+            time.sleep(5)
+
+wait_for_internet()
+
+
 import json
 import time
 import requests
@@ -19,19 +34,32 @@ def get_dummy_data():
     return []
 
 
-
 def fetch_prices():
     logger.info('Fetching prices')
+
     timeslot_end = datetime.now(timezone.utc)
     end_date = timeslot_end.strftime(DATETIME_FORMAT)
-    start_data = (timeslot_end - timedelta(days=DATA_SLICE_DAYS)).strftime(DATETIME_FORMAT)
-    url = (f'https://api.exchange.coinbase.com/products/{config.currency}/candles?'
-           f'granularity=900&start={urllib.parse.quote_plus(start_data)}&end={urllib.parse.quote_plus(end_date)}')
+    start_date = (timeslot_end - timedelta(days=DATA_SLICE_DAYS)).strftime(DATETIME_FORMAT)
+
+    url = (
+        f'https://api.exchange.coinbase.com/products/{config.currency}/candles?'
+        f'granularity=900&start={urllib.parse.quote_plus(start_date)}&end={urllib.parse.quote_plus(end_date)}'
+    )
+
     headers = {"Accept": "application/json"}
-    response = requests.request("GET", url, headers=headers)
-    external_data = json.loads(response.text)
-    prices = [entry[1:5] for entry in external_data[::-1]]
-    return prices
+
+    try:
+        response = requests.get(url, headers=headers, timeout=5)
+        response.raise_for_status()  # raises HTTPError if status != 200
+
+        external_data = response.json()
+        prices = [entry[1:5] for entry in external_data[::-1]]
+        return prices
+
+    except Exception as e:
+        logger.error(f"Coinbase API error: {e}")
+        return []  # IMPORTANT: never block or crash
+
 
 
 def main():
@@ -44,14 +72,22 @@ def main():
     try:
         while True:
             try:
-                prices = [entry[1:] for entry in get_dummy_data()] if config.dummy_data else fetch_prices()
-                data_sink.update_observers(prices)
+                if config.dummy_data:
+                    prices = [entry[1:] for entry in get_dummy_data()]
+                else:
+                    prices = fetch_prices()
+
+                if prices:
+                    data_sink.update_observers(prices)
+                else:
+                    logger.warning("No price data received")
+
                 time.sleep(config.refresh_interval)
-            except (HTTPError, URLError) as e:
-                logger.error(str(e))
+
+            except Exception as e:
+                logger.error(f"Loop error: {e}")
                 time.sleep(5)
-    except IOError as e:
-        logger.error(str(e))
+
     except KeyboardInterrupt:
         logger.info('Exit')
         data_sink.close()
